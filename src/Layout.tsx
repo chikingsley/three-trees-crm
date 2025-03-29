@@ -1,7 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
 
 type LayoutProps = {
   children: React.ReactNode;
