@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Client {
+  id                  BigInt       @id @default(autoincrement())
+  firstName           String?      @map("first_name")
+  lastName            String?      @map("last_name")
+  phone               String?
+  email               String?
+  classType           String?      @map("class_type")
+  classStatus         String?      @map("class_status")
+  enrollmentDate      DateTime?    @map("enrollment_date") @db.Timestamptz(6)
+  terminationDate     DateTime?    @map("termination_date") @db.Timestamptz(6)
+  reEnrollmentDate    DateTime?    @map("re_enrollment_date") @db.Timestamptz(6)
+  currentBalance      Float?       @map("current_balance")
+  paymentStatus       String?      @map("payment_status")
+  totalAbsences       Int?         @map("total_absences")
+  consecutiveAbsences Int?         @map("consecutive_absences")
+  attendanceStatus    String?      @map("attendance_status")
+  drugTestCount       Int?         @map("drug_test_count")
+  referralSource      String?      @map("referral_source")
+  notes               String?
+  createdAt           DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime?    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  attendance          Attendance[]
+  payments            Payment[]
+
+  @@map("clients")
+}
+
+model Facilitator {
+  id                     BigInt                  @id @default(autoincrement())
+  firstName              String?                 @map("first_name")
+  lastName               String?                 @map("last_name")
+  schedule               String?
+  createdAt              DateTime?               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime?               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  classes                Class[]
+  facilitatorAssignments FacilitatorAssignment[]
+
+  @@map("facilitators")
+}
+
+model Payment {
+  id            BigInt    @id @default(autoincrement())
+  clientId      BigInt?   @map("client_id")
+  paymentType   String?   @map("payment_type")
+  paymentReason String?   @map("payment_reason")
+  paymentDate   DateTime? @map("payment_date") @db.Timestamptz(6)
+  notes         String?
+  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  client        Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("payments")
+}
+
+model ClassDefinition {
+  id             BigInt   @id @default(autoincrement())
+  classType      String   @unique @map("class_type")
+  className      String   @map("class_name")
+  classFormat    String   @default("E-CLASSROOM") @map("class_format")
+  durationWeeks  Int      @map("duration_weeks")
+  genderRules    String   @map("gender_rules")
+  customDuration Boolean? @default(false) @map("custom_duration")
+  classes        Class[]
+
+  @@map("class_definitions")
+}
+
+model Class {
+  id                     BigInt                  @id @default(autoincrement())
+  className              String                  @unique @map("class_name")
+  dayOfWeek              String                  @map("day_of_week")
+  time                   DateTime                @db.Time(6)
+  facilitatorId          BigInt?                 @map("facilitator_id")
+  classTypeId            BigInt?                 @map("class_type_id")
+  attendance             Attendance[]
+  classDefinition        ClassDefinition?        @relation(fields: [classTypeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  facilitator            Facilitator?            @relation(fields: [facilitatorId], references: [id], onUpdate: NoAction)
+  facilitatorAssignments FacilitatorAssignment[]
+
+  @@unique([className, dayOfWeek, time], map: "unique_class_instance")
+  @@map("classes")
+}
+
+model Attendance {
+  id               BigInt    @id @default(autoincrement())
+  clientId         BigInt?   @map("client_id")
+  classId          BigInt?   @map("class_id")
+  date             DateTime? @db.Timestamptz(6)
+  attendanceStatus String?   @map("attendance_status")
+  excuseReason     String?   @map("excuse_reason")
+  notes            String?
+  createdAt        DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  class            Class?    @relation(fields: [classId], references: [id], onUpdate: NoAction)
+  client           Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("attendance")
+}
+
+model FacilitatorAssignment {
+  id                  BigInt      @id @default(autoincrement())
+  facilitatorId       BigInt      @map("facilitator_id")
+  classId             BigInt      @map("class_id")
+  assignmentStartDate DateTime?   @default(now()) @map("assignment_start_date") @db.Timestamptz(6)
+  assignmentEndDate   DateTime?   @map("assignment_end_date") @db.Timestamptz(6)
+  createdAt           DateTime?   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime?   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  class               Class       @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  facilitator         Facilitator @relation(fields: [facilitatorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([facilitatorId, classId, assignmentStartDate])
+  @@map("facilitator_assignments")
+}
+
+model User {
+  id              BigInt     @id @default(autoincrement())
+  clerkUserId     String     @unique @map("clerk_user_id")
+  email           String?    @unique
+  firstName       String?    @map("first_name")
+  lastName        String?    @map("last_name")
+  profileImageUrl String?    @map("profile_image_url")
+  createdAt       DateTime?  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime?  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+model AuditLog {
+  id              BigInt    @id @default(autoincrement())
+  userId          BigInt?   @map("user_id")
+  action          String
+  tableName       String    @map("table_name")
+  recordPk        String    @map("record_pk")
+  changeTimestamp DateTime? @default(now()) @map("change_timestamp") @db.Timestamptz(6)
+  changedFields   Json?     @map("changed_fields")
+  user            User?     @relation(fields: [userId], references: [id], onUpdate: NoAction)
+
+  @@index([tableName, recordPk], map: "idx_audit_log_record")
+  @@index([changeTimestamp], map: "idx_audit_log_timestamp")
+  @@index([userId], map: "idx_audit_log_user")
+  @@map("audit_log")
+}

@@ -9,7 +9,7 @@ import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import { App } from "./App";
 import { ClerkProvider } from '@clerk/clerk-react'
-import { BUN_PUBLIC_CLERK_PUBLISHABLE_KEY } from "env";
+import { BUN_PUBLIC_CLERK_PUBLISHABLE_KEY } from "env/env";
 
 const PUBLISHABLE_KEY = BUN_PUBLIC_CLERK_PUBLISHABLE_KEY
 
@@ -20,7 +20,7 @@ if (!PUBLISHABLE_KEY) {
 const elem = document.getElementById("root")!;
 const app = (
   <StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
       <App />
     </ClerkProvider>
   </StrictMode>
