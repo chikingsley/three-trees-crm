@@ -31,8 +31,20 @@ export async function getCurrentDbUser(req: Request): Promise<Response> {
     });
   }
 
+  // Create a safe version of dbUser with BigInt converted to strings
+  const safeDbUser = {
+    id: dbUser.id.toString(), // Convert BigInt to string
+    clerkUserId: dbUser.clerkUserId,
+    firstName: dbUser.firstName,
+    lastName: dbUser.lastName,
+    email: dbUser.email,
+    profileImageUrl: dbUser.profileImageUrl,
+    createdAt: dbUser.createdAt,
+    updatedAt: dbUser.updatedAt,
+  };
+
   // Return the database user
-  return new Response(JSON.stringify(dbUser), {
+  return new Response(JSON.stringify(safeDbUser), {
     headers: { 'Content-Type': 'application/json' },
   });
 }
@@ -46,6 +58,18 @@ export async function checkUserSync(req: Request): Promise<Response> {
   // Get the database user (this will create one if it doesn't exist)
   const { dbUser } = await getDbUser(req);
 
+  // Create a safe version of dbUser with BigInt converted to strings
+  const safeDbUser = dbUser ? {
+    id: dbUser.id.toString(), // Convert BigInt to string
+    clerkUserId: dbUser.clerkUserId,
+    firstName: dbUser.firstName,
+    lastName: dbUser.lastName,
+    email: dbUser.email,
+    profileImageUrl: dbUser.profileImageUrl,
+    createdAt: dbUser.createdAt,
+    updatedAt: dbUser.updatedAt,
+  } : null;
+
   // Return the sync status
   return new Response(JSON.stringify({
     clerkUser: {
@@ -56,16 +80,7 @@ export async function checkUserSync(req: Request): Promise<Response> {
       imageUrl: user.imageUrl,
       createdAt: user.createdAt,
     },
-    dbUser: dbUser ? {
-      id: dbUser.id,
-      clerkUserId: dbUser.clerkUserId,
-      firstName: dbUser.firstName,
-      lastName: dbUser.lastName,
-      email: dbUser.email,
-      profileImageUrl: dbUser.profileImageUrl,
-      createdAt: dbUser.createdAt,
-      updatedAt: dbUser.updatedAt,
-    } : null,
+    dbUser: safeDbUser,
     isSynced: !!dbUser && dbUser.clerkUserId === user.id,
     autoCreated: !!(dbUser && new Date(dbUser.createdAt).getTime() > Date.now() - 10000), // Created in the last 10 seconds
   }), {
