@@ -9,28 +9,21 @@ datasource db {
 }
 
 model Client {
-  id                  BigInt       @id @default(autoincrement())
-  firstName           String?      @map("first_name")
-  lastName            String?      @map("last_name")
-  phone               String?
-  email               String?
-  classType           String?      @map("class_type")
-  classStatus         String?      @map("class_status")
-  enrollmentDate      DateTime?    @map("enrollment_date") @db.Timestamptz(6)
-  terminationDate     DateTime?    @map("termination_date") @db.Timestamptz(6)
-  reEnrollmentDate    DateTime?    @map("re_enrollment_date") @db.Timestamptz(6)
-  currentBalance      Float?       @map("current_balance")
-  paymentStatus       String?      @map("payment_status")
-  totalAbsences       Int?         @map("total_absences")
-  consecutiveAbsences Int?         @map("consecutive_absences")
-  attendanceStatus    String?      @map("attendance_status")
-  drugTestCount       Int?         @map("drug_test_count")
-  referralSource      String?      @map("referral_source")
-  notes               String?
-  createdAt           DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime?    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  attendance          Attendance[]
-  payments            Payment[]
+  id              BigInt       @id @default(autoincrement())
+  firstName       String?      @map("first_name")
+  lastName        String?      @map("last_name")
+  phone           String?
+  email           String?
+  currentBalance  Float        @default(0) @map("current_balance")
+  referralSource  String?      @map("referral_source")
+  referralCounty  String?      @map("referral_county")
+  notes           String?
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  enrollments     Enrollment[]
+  payments        Payment[]
+  drugTests       DrugTest[]
 
   @@map("clients")
 }
@@ -39,27 +32,15 @@ model Facilitator {
   id                     BigInt                  @id @default(autoincrement())
   firstName              String?                 @map("first_name")
   lastName               String?                 @map("last_name")
+  email                  String?
+  phone                  String?
   schedule               String?
-  createdAt              DateTime?               @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt              DateTime?               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  classes                Class[]
+  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
   facilitatorAssignments FacilitatorAssignment[]
 
   @@map("facilitators")
-}
-
-model Payment {
-  id            BigInt    @id @default(autoincrement())
-  clientId      BigInt?   @map("client_id")
-  paymentType   String?   @map("payment_type")
-  paymentReason String?   @map("payment_reason")
-  paymentDate   DateTime? @map("payment_date") @db.Timestamptz(6)
-  notes         String?
-  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  client        Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@map("payments")
 }
 
 model ClassDefinition {
@@ -68,58 +49,152 @@ model ClassDefinition {
   className      String   @map("class_name")
   classFormat    String   @default("E-CLASSROOM") @map("class_format")
   durationWeeks  Int      @map("duration_weeks")
-  genderRules    String   @map("gender_rules")
+  genderRules    String?  @map("gender_rules")
   customDuration Boolean? @default(false) @map("custom_duration")
+  price          Float    @default(0)
+  description    String?
+  
   classes        Class[]
 
   @@map("class_definitions")
 }
 
 model Class {
-  id                     BigInt                  @id @default(autoincrement())
-  className              String                  @unique @map("class_name")
-  dayOfWeek              String                  @map("day_of_week")
-  time                   DateTime                @db.Time(6)
-  facilitatorId          BigInt?                 @map("facilitator_id")
-  classTypeId            BigInt?                 @map("class_type_id")
-  attendance             Attendance[]
-  classDefinition        ClassDefinition?        @relation(fields: [classTypeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  facilitator            Facilitator?            @relation(fields: [facilitatorId], references: [id], onUpdate: NoAction)
+  id               BigInt                  @id @default(autoincrement())
+  className        String                  @map("class_name")
+  dayOfWeek        String                  @map("day_of_week")
+  time             DateTime                @db.Time(6)
+  startDate        DateTime                @map("start_date") @db.Date
+  endDate          DateTime?               @map("end_date") @db.Date
+  maxStudents      Int                     @default(20) @map("max_students")
+  location         String?
+  status           String                  @default("ACTIVE")
+  classTypeId      BigInt                  @map("class_type_id")
+  
+  classDefinition  ClassDefinition         @relation(fields: [classTypeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   facilitatorAssignments FacilitatorAssignment[]
+  enrollments      Enrollment[]
+  attendanceDates  AttendanceDate[]
 
-  @@unique([className, dayOfWeek, time], map: "unique_class_instance")
+  @@unique([className, dayOfWeek, time, startDate], map: "unique_class_instance")
   @@map("classes")
 }
 
-model Attendance {
-  id               BigInt    @id @default(autoincrement())
-  clientId         BigInt?   @map("client_id")
-  classId          BigInt?   @map("class_id")
-  date             DateTime? @db.Timestamptz(6)
-  attendanceStatus String?   @map("attendance_status")
-  excuseReason     String?   @map("excuse_reason")
+model Enrollment {
+  id               BigInt       @id @default(autoincrement())
+  clientId         BigInt       @map("client_id")
+  classId          BigInt       @map("class_id")
+  enrollmentDate   DateTime     @map("enrollment_date") @db.Timestamptz(6)
+  terminationDate  DateTime?    @map("termination_date") @db.Timestamptz(6)
+  reEnrollmentDate DateTime?    @map("re_enrollment_date") @db.Timestamptz(6)
+  status           String       @default("ENROLLED") // ENROLLED, COMPLETED, TERMINATED, NEVER_STARTED
+  completionDate   DateTime?    @map("completion_date") @db.Timestamptz(6)
+  totalAbsences    Int          @default(0) @map("total_absences")
+  consecutiveAbsences Int       @default(0) @map("consecutive_absences")
   notes            String?
-  createdAt        DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  class            Class?    @relation(fields: [classId], references: [id], onUpdate: NoAction)
-  client           Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  client           Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  class            Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  attendance       Attendance[]
+  paymentAllocations PaymentAllocation[]
 
+  @@unique([clientId, classId])
+  @@map("enrollments")
+}
+
+model AttendanceDate {
+  id               BigInt      @id @default(autoincrement())
+  classId          BigInt      @map("class_id")
+  date             DateTime    @db.Date
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  class            Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  attendance       Attendance[]
+
+  @@unique([classId, date])
+  @@map("attendance_dates")
+}
+
+model Attendance {
+  id               BigInt          @id @default(autoincrement())
+  enrollmentId     BigInt          @map("enrollment_id")
+  attendanceDateId BigInt          @map("attendance_date_id")
+  status           String          @default("ABSENT") // PRESENT, ABSENT, EXCUSED
+  excuseReason     String?         @map("excuse_reason")
+  notes            String?
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  enrollment       Enrollment      @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  attendanceDate   AttendanceDate  @relation(fields: [attendanceDateId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, attendanceDateId])
   @@map("attendance")
+}
+
+model Payment {
+  id                BigInt              @id @default(autoincrement())
+  clientId          BigInt              @map("client_id")
+  amount            Float
+  paymentType       String              @map("payment_type") // CASH, CHECK, CARD, etc.
+  paymentReason     String?             @map("payment_reason")
+  paymentDate       DateTime            @map("payment_date") @db.Timestamptz(6)
+  notes             String?
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  client            Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  paymentAllocations PaymentAllocation[]
+
+  @@map("payments")
+}
+
+model PaymentAllocation {
+  id           BigInt      @id @default(autoincrement())
+  paymentId    BigInt      @map("payment_id")
+  enrollmentId BigInt      @map("enrollment_id")
+  amount       Float
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  payment      Payment     @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  enrollment   Enrollment  @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@map("payment_allocations")
 }
 
 model FacilitatorAssignment {
   id                  BigInt      @id @default(autoincrement())
   facilitatorId       BigInt      @map("facilitator_id")
   classId             BigInt      @map("class_id")
-  assignmentStartDate DateTime?   @default(now()) @map("assignment_start_date") @db.Timestamptz(6)
+  assignmentStartDate DateTime    @default(now()) @map("assignment_start_date") @db.Timestamptz(6)
   assignmentEndDate   DateTime?   @map("assignment_end_date") @db.Timestamptz(6)
-  createdAt           DateTime?   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime?   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  class               Class       @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  facilitator         Facilitator @relation(fields: [facilitatorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  isPrimary           Boolean     @default(true) @map("is_primary")
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  class               Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  facilitator         Facilitator @relation(fields: [facilitatorId], references: [id], onDelete: Cascade)
 
   @@unique([facilitatorId, classId, assignmentStartDate])
   @@map("facilitator_assignments")
+}
+
+model DrugTest {
+  id           BigInt    @id @default(autoincrement())
+  clientId     BigInt    @map("client_id")
+  testDate     DateTime  @map("test_date") @db.Timestamptz(6)
+  result       String    // POSITIVE, NEGATIVE, INCONCLUSIVE
+  notes        String?
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  client       Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("drug_tests")
 }
 
 model User {
@@ -129,8 +204,9 @@ model User {
   firstName       String?    @map("first_name")
   lastName        String?    @map("last_name")
   profileImageUrl String?    @map("profile_image_url")
-  createdAt       DateTime?  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime?  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
   auditLogs       AuditLog[]
 
   @@map("users")
@@ -142,9 +218,10 @@ model AuditLog {
   action          String
   tableName       String    @map("table_name")
   recordPk        String    @map("record_pk")
-  changeTimestamp DateTime? @default(now()) @map("change_timestamp") @db.Timestamptz(6)
+  changeTimestamp DateTime  @default(now()) @map("change_timestamp") @db.Timestamptz(6)
   changedFields   Json?     @map("changed_fields")
-  user            User?     @relation(fields: [userId], references: [id], onUpdate: NoAction)
+  
+  user            User?     @relation(fields: [userId], references: [id])
 
   @@index([tableName, recordPk], map: "idx_audit_log_record")
   @@index([changeTimestamp], map: "idx_audit_log_timestamp")
