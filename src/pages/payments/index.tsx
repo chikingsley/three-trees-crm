@@ -58,8 +58,10 @@ export default function PaymentsPage() {
         <h1 className="text-2xl font-bold mb-4">Payments</h1>
         <p className="text-muted-foreground mb-6">Track and manage client payments</p>
       </div>
-      {/* Pass the correct columns and fetched payments data */}
+      {/* Render DataTable directly, padding is now inside the component */}
+      {/* <div className="px-4 lg:px-6"> - This wrapping div is removed */}
       <DataTable columns={columns} data={payments} />
+      {/* </div> */}
     </div>
   );
 } 

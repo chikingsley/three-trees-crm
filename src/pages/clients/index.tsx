@@ -63,7 +63,7 @@ export default function ClientsPage() {
         <h1 className="text-2xl font-bold mb-4">Clients</h1>
         <p className="text-muted-foreground mb-6">Manage your client relationships</p>
       </div>
-      {/* Pass the fetched clients data to the DataTable */}
+      {/* Render DataTable directly, padding is now inside the component */}
       <DataTable columns={columns} data={clients} />
     </div>
   );

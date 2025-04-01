@@ -69,11 +69,11 @@ export default function HomePage() {
         <ChartAreaInteractive />
       </div>
 
-      {/* Display Client Table on main dashboard */}
-      <div className="px-4 lg:px-6">
-        <h2 className="text-xl font-semibold mb-3">Recent Clients</h2>
-        <DataTable columns={clientColumns} data={clients} />
-      </div>
+      {/* Display Client Table on main dashboard - Remove wrapping div */}
+      {/* <div className="px-4 lg:px-6"> */}
+      <h2 className="text-xl font-semibold mb-3 px-4 lg:px-6">Recent Clients</h2> {/* Add padding to header */}
+      <DataTable columns={clientColumns} data={clients} />
+      {/* </div> */}
 
       {/* Could add other tables/summaries here */}
     </div>

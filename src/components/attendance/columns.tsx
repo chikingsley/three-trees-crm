@@ -2,20 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-// Import the specific type returned by the API from the central location
 import { ApiAttendanceRecord } from "@/types/attendance";
-// No longer need Prisma types directly here unless accessing deeply nested data (which we aren't currently)
-// import { Client, Enrollment } from "@prisma/client";
-
-// Remove local type definition
-/*
-type SerializableAttendanceWithDetails = SerializableAttendance & {
-  clientName?: string;
-  attendanceActualDate?: string;
-  enrollment?: Enrollment & { client?: Partial<Pick<Client, 'firstName' | 'lastName'>> };
-  attendanceDate?: { date: Date }; // Original date might still be nested
-};
-*/
 
 const formatDate = (dateString: string | null | undefined) => {
   if (!dateString) return 'N/A';
