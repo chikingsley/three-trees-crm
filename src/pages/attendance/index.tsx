@@ -1,26 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { DataTable } from "@/components/data-table";
+import { useState, useEffect } from 'react';
+import { DataTable } from "@/components/data-table/data-table";
 import { columns } from "@/components/attendance/columns";
-// Import the specific API type from the central location
 import { ApiAttendanceRecord } from "@/types/attendance";
-// No longer need Prisma types or base SerializableAttendance directly here
-// import { SerializableAttendance } from "@/types/attendance";
-// import { Client } from "@prisma/client";
-
-// Remove local type definition
-/*
-type SerializableAttendanceWithDetails = SerializableAttendance & {
-  clientName?: string;
-  attendanceActualDate?: string;
-  enrollment?: { client?: Partial<Pick<Client, 'firstName' | 'lastName'>> };
-  attendanceDate?: { date: Date };
-};
-*/
 
 export default function AttendancePage() {
-  // Update state to use the imported ApiAttendanceRecord type
   const [attendance, setAttendance] = useState<ApiAttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

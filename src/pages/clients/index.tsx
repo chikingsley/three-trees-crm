@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { columns } from "@/components/clients/columns";
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/data-table/data-table";
 import { SerializableClient } from "@/types/client"; 
 
 export default function ClientsPage() {

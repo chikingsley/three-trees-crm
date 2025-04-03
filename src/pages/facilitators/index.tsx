@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/data-table/data-table";
 import { columns } from "@/components/facilitators/columns";
 import { SerializableFacilitator } from "@/types/facilitator";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/data-table/data-table";
 import { columns } from "@/components/payments/columns"; 
 import { SerializablePayment } from "@/types/payment"; 
 
