@@ -1,5 +1,7 @@
 import { createClerkClient } from '@clerk/backend';
-import { BUN_PUBLIC_CLERK_PUBLISHABLE_KEY } from "env/env";
+// import { BUN_PUBLIC_CLERK_PUBLISHABLE_KEY } from "env/env";
+
+const BUN_PUBLIC_CLERK_PUBLISHABLE_KEY = process.env.BUN_PUBLIC_CLERK_PUBLISHABLE_KEY
 
 // Initialize Clerk client with both secret and publishable keys
 const clerkClient = createClerkClient({ 
