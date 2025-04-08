@@ -1,37 +1,34 @@
 import { serve } from "bun";
 import index from "./index.html";
 import { handleClerkWebhook } from "./api/webhooks";
+import { handleWixSignupFormWebhook } from "./api/wix-form-webhook";
 import { getCurrentUser, getCurrentDbUser, checkUserSync } from "./api/users";
-import prisma from "./lib/prisma"; // Import Prisma client
+import prisma from "./lib/prisma"; 
+
+// Enhanced request logger function
+const logRequest = (req) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  
+  // Log headers to help diagnose webhook issues
+  const headerObj = {};
+  req.headers.forEach((value, key) => {
+    headerObj[key] = value;
+  });
+  console.log(`[REQUEST HEADERS] ${JSON.stringify(headerObj)}`);
+  
+  // Log the URL details
+  try {
+    const url = new URL(req.url);
+    console.log(`[URL DETAILS] Protocol: ${url.protocol}, Host: ${url.host}, Pathname: ${url.pathname}`);
+  } catch (error) {
+    console.log(`[URL DETAILS] Error parsing URL: ${error.message}`);
+  }
+};
 
 const server = serve({
   routes: {
     // Serve index.html for all unmatched routes.
     "/*": index,
-
-    "/api/hello": {
-      async GET(req) {
-        return Response.json({
-          message: "Hello, world!",
-          method: "GET",
-        });
-      },
-      async PUT(req) {
-        return Response.json({
-          message: "Hello, world!",
-          method: "PUT",
-        });
-      },
-    },
-
-    "/api/hello/:name": async (req) => {
-      const name = req.params.name;
-      return Response.json({
-        message: `Hello, ${name}!`,
-      });
-    },
-    
-    // Clerk webhook endpoint
     "/api/webhooks": async (req) => {
       if (req.method !== "POST") {
         return new Response("Method not allowed", { status: 405 });
@@ -39,8 +36,34 @@ const server = serve({
       
       return handleClerkWebhook(req);
     },
-    
-    // User information endpoints (protected)
+
+    "/api/wix-signup-form": async (req) => {
+      console.log("[WIX WEBHOOK] Received request to webhook endpoint");
+      logRequest(req);
+      
+      if (req.method !== "POST") {
+        console.log("[WIX WEBHOOK] Method not allowed:", req.method);
+        return new Response("Method not allowed", { status: 405 });
+      }
+      
+      try {
+        console.log("[WIX WEBHOOK] Calling webhook handler...");
+        const response = await handleWixSignupFormWebhook(req);
+        console.log("[WIX WEBHOOK] Handler completed successfully");
+        return response;
+      } catch (error) {
+        console.error("[WIX WEBHOOK] Error in route handler:", error);
+        return new Response(JSON.stringify({ 
+          success: false, 
+          message: "Error in webhook handler",
+          error: error instanceof Error ? error.message : String(error)
+        }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    },
+
     "/api/me": async (req) => {
       if (req.method !== "GET") {
         return new Response("Method not allowed", { status: 405 });
@@ -65,7 +88,6 @@ const server = serve({
       return checkUserSync(req);
     },
 
-    // API endpoint to fetch clients
     "/api/clients": async (req) => {
       if (req.method !== "GET") {
         return new Response("Method not allowed", { status: 405 });
@@ -73,19 +95,16 @@ const server = serve({
 
       try {
         const clients = await prisma.client.findMany({
-          // You can add sorting, filtering, etc. here later
           orderBy: {
-            createdAt: 'desc', // Example: Sort by newest first
+            createdAt: 'desc',
           },
         });
 
-        // Serialize BigInt and Date fields for JSON compatibility
         const serializedClients = clients.map(client => ({
           ...client,
-          id: client.id.toString(), // Convert BigInt to string
-          createdAt: client.createdAt.toISOString(), // Convert Date to ISO string
-          updatedAt: client.updatedAt.toISOString(), // Convert Date to ISO string
-          // Ensure other fields like currentBalance (Float) are serializable
+          id: client.id.toString(),
+          createdAt: client.createdAt.toISOString(),
+          updatedAt: client.updatedAt.toISOString(),
         }));
 
         return Response.json(serializedClients);
@@ -95,7 +114,6 @@ const server = serve({
       }
     },
 
-    // API endpoint to fetch payments
     "/api/payments": async (req) => {
       if (req.method !== "GET") {
         return new Response("Method not allowed", { status: 405 });
@@ -104,7 +122,7 @@ const server = serve({
       try {
         const payments = await prisma.payment.findMany({
           include: {
-            client: { // Include related client data
+            client: {
               select: {
                 firstName: true,
                 lastName: true,
@@ -112,20 +130,17 @@ const server = serve({
             }
           },
           orderBy: {
-            paymentDate: 'desc', // Sort by payment date, newest first
+            paymentDate: 'desc',
           },
         });
 
-        // Serialize BigInt, Date, and potentially Float fields
         const serializedPayments = payments.map(payment => ({
           ...payment,
-          id: payment.id.toString(), // Convert BigInt to string
-          clientId: payment.clientId.toString(), // Convert BigInt to string
-          paymentDate: payment.paymentDate.toISOString(), // Convert Date to ISO string
+          id: payment.id.toString(),
+          clientId: payment.clientId.toString(),
+          paymentDate: payment.paymentDate.toISOString(),
           createdAt: payment.createdAt.toISOString(),
           updatedAt: payment.updatedAt.toISOString(),
-          // Ensure amount (Float) is handled correctly if needed, but JSON usually handles numbers fine.
-          // Include client names directly in the object for easier access in columns
           clientName: `${payment.client?.lastName ?? ''}, ${payment.client?.firstName ?? ''}`.trim() || 'N/A',
         }));
 
@@ -136,14 +151,13 @@ const server = serve({
       }
     },
 
-    // API endpoint to fetch facilitators
     "/api/facilitators": async (req) => {
       if (req.method !== "GET") {
         return new Response("Method not allowed", { status: 405 });
       }
       try {
         const facilitators = await prisma.facilitator.findMany({
-          orderBy: { lastName: 'asc' }, // Example sort
+          orderBy: { lastName: 'asc' },
         });
         const serializedFacilitators = facilitators.map(f => ({
           ...f,
@@ -158,7 +172,6 @@ const server = serve({
       }
     },
 
-    // API endpoint to fetch attendance records
     "/api/attendance": async (req) => {
       if (req.method !== "GET") {
         return new Response("Method not allowed", { status: 405 });
@@ -173,7 +186,7 @@ const server = serve({
             },
             attendanceDate: { select: { date: true } }
           },
-          orderBy: { attendanceDate: { date: 'desc' } }, // Sort by date desc
+          orderBy: { attendanceDate: { date: 'desc' } },
         });
 
         const serializedAttendance = attendanceRecords.map(a => ({
@@ -183,9 +196,8 @@ const server = serve({
           attendanceDateId: a.attendanceDateId.toString(),
           createdAt: a.createdAt.toISOString(),
           updatedAt: a.updatedAt.toISOString(),
-          // Add derived/flattened fields for easier column access
           clientName: `${a.enrollment?.client?.lastName ?? ''}, ${a.enrollment?.client?.firstName ?? ''}`.trim() || 'N/A',
-          attendanceActualDate: a.attendanceDate?.date.toISOString().split('T')[0] ?? 'N/A', // Format date as YYYY-MM-DD
+          attendanceActualDate: a.attendanceDate?.date.toISOString().split('T')[0] ?? 'N/A',
         }));
         return Response.json(serializedAttendance);
       } catch (error) {
@@ -199,3 +211,9 @@ const server = serve({
 });
 
 console.log(`🚀 Server running at ${server.url}`);
+console.log(`📝 Available endpoints:`);
+console.log(` - /api/wix-signup-form (Webhook endpoint)`);
+console.log(` - /api/webhooks (Clerk webhook)`);
+console.log(` - /api/me, /api/me/db, /api/me/sync (User endpoints)`);
+console.log(` - /api/clients, /api/payments, /api/facilitators, /api/attendance (Data endpoints)`);
+console.log(`🔌 Webhook endpoint: ${server.url}/api/wix-signup-form`);
