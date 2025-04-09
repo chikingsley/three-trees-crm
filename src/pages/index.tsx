@@ -6,8 +6,9 @@ import { columns as clientColumns } from "@/components/clients/columns";
 import { SerializableClient } from "@/types/client";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"; 
 import { SectionCards } from "@/components/section-cards"; 
+import { NavigationProps } from "@/App";
 
-export default function HomePage() {
+export default function HomePage({ navigate }: NavigationProps) {
   const [clients, setClients] = useState<SerializableClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

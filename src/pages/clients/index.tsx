@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { columns } from "@/components/clients/columns";
 import { DataTable } from "@/components/data-table/data-table";
-import { SerializableClient } from "@/types/client"; 
+import { SerializableClient } from "@/types/client";
+import { NavigationProps } from "@/App";
 
-export default function ClientsPage() {
+export default function ClientsPage({ navigate }: NavigationProps) {
   const [clients, setClients] = useState<SerializableClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

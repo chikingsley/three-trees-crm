@@ -9,9 +9,9 @@ import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import { App } from "./App";
 import { ClerkProvider } from '@clerk/clerk-react'
-// import { BUN_PUBLIC_CLERK_PUBLISHABLE_KEY } from "env/env";
+import { BUN_PUBLIC_CLERK_PUBLISHABLE_KEY } from "env/env";
 
-const BUN_PUBLIC_CLERK_PUBLISHABLE_KEY = process.env.BUN_PUBLIC_CLERK_PUBLISHABLE_KEY
+// const BUN_PUBLIC_CLERK_PUBLISHABLE_KEY = process.env.BUN_PUBLIC_CLERK_PUBLISHABLE_KEY
 
 const PUBLISHABLE_KEY = BUN_PUBLIC_CLERK_PUBLISHABLE_KEY
 

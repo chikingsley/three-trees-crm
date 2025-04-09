@@ -26,19 +26,111 @@ const logRequest = (req) => {
 };
 
 const server = serve({
+  // Add the fetch handler back
+  fetch(req) {
+    // Log all incoming requests with detailed URL information
+    console.log('\n[FETCH HANDLER] Received request');
+    logRequest(req);
+    
+    // Extract URL details for debugging
+    try {
+      const url = new URL(req.url);
+      console.log(`[FETCH HANDLER] URL pathname: ${url.pathname}`);
+      console.log(`[FETCH HANDLER] URL search: ${url.search}`);
+      console.log(`[FETCH HANDLER] URL hash: ${url.hash}`);
+    } catch (error) {
+      console.log(`[FETCH HANDLER] Error parsing URL: ${error.message}`);
+    }
+    
+    // Check if this is a webhook request by looking at the URL path
+    if (req.url.includes('/api/wix-signup-form')) {
+      console.log('[FETCH HANDLER] Intercepted Wix webhook request');
+      
+      // For POST requests to the webhook endpoint
+      if (req.method === 'POST') {
+        console.log('[FETCH HANDLER] Processing POST request to webhook endpoint');
+        return req.json().then(payload => {
+          console.log('[FETCH HANDLER] Successfully parsed payload');
+          // Pass the already parsed payload to the webhook handler
+          return handleWixSignupFormWebhook(req, payload);
+        }).catch(error => {
+          console.error('[FETCH HANDLER] Error parsing payload:', error);
+          return new Response(JSON.stringify({ error: 'Failed to parse payload' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        });
+      }
+    }
+    
+    // Continue with normal routing for other requests
+    console.log('[FETCH HANDLER] Continuing to standard routes');
+    return undefined;
+  },
   routes: {
     // Serve index.html for all unmatched routes.
     "/*": index,
     "/api/webhooks": async (req) => {
+      console.log('[ROUTE HANDLER] /api/webhooks called');
       if (req.method !== "POST") {
         return new Response("Method not allowed", { status: 405 });
       }
       
       return handleClerkWebhook(req);
     },
-
+    
     "/api/wix-signup-form": async (req) => {
-      console.log("[WIX WEBHOOK] Received request to webhook endpoint");
+      console.log('[ROUTE HANDLER] /api/wix-signup-form called');
+      logRequest(req);
+      
+      if (req.method !== "POST") {
+        console.log('[ROUTE HANDLER] Method not allowed:', req.method);
+        return new Response("Method not allowed", { status: 405 });
+      }
+      
+      try {
+        console.log('[ROUTE HANDLER] Calling webhook handler...');
+        const response = await handleWixSignupFormWebhook(req);
+        console.log('[ROUTE HANDLER] Handler completed successfully');
+        return response;
+      } catch (error) {
+        console.error('[ROUTE HANDLER] Error in route handler:', error);
+        return new Response(JSON.stringify({ 
+          success: false, 
+          message: "Error in webhook handler",
+          error: error instanceof Error ? error.message : String(error)
+        }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    },
+    
+    // Add a diagnostic catch-all route for API requests
+    "/api/*": async (req) => {
+      console.log('[CATCH-ALL] Received request to unknown API endpoint');
+      logRequest(req);
+      
+      try {
+        const url = new URL(req.url);
+        console.log(`[CATCH-ALL] URL pathname: ${url.pathname}`);
+      } catch (error) {
+        console.log(`[CATCH-ALL] Error parsing URL: ${error.message}`);
+      }
+      
+      return new Response(JSON.stringify({
+        message: "Endpoint not found",
+        requestUrl: req.url,
+        method: req.method,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" }
+      });
+    },
+
+    "/api/wix-signup-form/": async (req) => {
+      console.log("[WIX WEBHOOK TRAILING SLASH] Received request to webhook endpoint");
       logRequest(req);
       
       if (req.method !== "POST") {

@@ -9,9 +9,15 @@ import FacilitatorsPage from "./pages/facilitators";
 import ReportsPage from "./pages/reports";
 import SettingsPage from "./pages/settings";
 import ClientDetail from "./pages/clients/[id]";
+import { FC } from "react";
+
+// Define a common navigation props interface
+export interface NavigationProps {
+  navigate: (path: string) => void;
+}
 
 // Simple route mapping for demonstration
-const routes = {
+const routes: Record<string, FC<NavigationProps>> = {
   "/": Dashboard,
   "/clients": ClientsPage,
   "/clients/1": ClientDetail, // Example client detail page
@@ -46,7 +52,7 @@ export function App() {
   };
 
   // In a real app, you'd use a proper router that handles dynamic paths better
-  const PageComponent = routes[currentPath as keyof typeof routes] || Dashboard;
+  const PageComponent: FC<NavigationProps> = routes[currentPath as keyof typeof routes] || Dashboard;
 
   return (
     <Layout>
