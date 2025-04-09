@@ -3,11 +3,6 @@
   "buildCommand": "bun run build",
   "outputDirectory": "dist",
   "framework": null,
-  "functions": {
-    "api/**/*": {
-      "memory": 1024
-    }
-  },
   "routes": [
     { "src": "/api/wix-form-webhook", "dest": "/api/wix-form-webhook.ts" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
