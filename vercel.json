@@ -1,11 +1,5 @@
 {
   "version": 2,
   "buildCommand": "bun run build",
-  "outputDirectory": "dist",
-  "framework": null,
-  "routes": [
-    { "src": "/api/wix-form-webhook", "dest": "/api/wix-form-webhook.ts" },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/" }
-  ]
+  "outputDirectory": "dist"
 }
