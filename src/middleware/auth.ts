@@ -1,5 +1,4 @@
 import { getUserFromRequest } from '../lib/clerk';
-import prisma from '../lib/prisma';
 
 /**
  * Middleware to check if a user is authenticated.
@@ -56,31 +55,31 @@ export async function getDbUser(req: Request): Promise<{ dbUser: any | null; res
       const primaryEmail = user.primaryEmailAddress?.emailAddress;
       
       // Create the user in the database
-      dbUser = await prisma.user.create({
-        data: {
-          clerkUserId: user.id,
-          email: primaryEmail || null,
-          firstName: user.firstName || null,
-          lastName: user.lastName || null,
-          profileImageUrl: user.imageUrl || null,
-        },
-      });
+      // dbUser = await prisma.user.create({
+      //   data: {
+      //     clerkUserId: user.id,
+      //     email: primaryEmail || null,
+      //     firstName: user.firstName || null,
+      //     lastName: user.lastName || null,
+      //     profileImageUrl: user.imageUrl || null,
+      //   },
+      // });
       
       console.log(`User ${user.id} successfully created in database with DB ID: ${dbUser.id}`);
       
       // Create an audit log entry for the creation
-      await prisma.auditLog.create({
-        data: {
-          userId: dbUser.id,
-          action: 'CREATE',
-          tableName: 'users',
-          recordPk: dbUser.id.toString(),
-          changedFields: { 
-            reason: 'User auto-created during authentication',
-            source: 'auth_middleware' 
-          },
-        }
-      });
+      // await prisma.auditLog.create({
+      //   data: {
+      //     userId: dbUser.id,
+      //     action: 'CREATE',
+      //     tableName: 'users',
+      //     recordPk: dbUser.id.toString(),
+      //     changedFields: { 
+      //       reason: 'User auto-created during authentication',
+      //       source: 'auth_middleware' 
+      //     },
+      //   }
+      // });
     }
     
     return { dbUser };

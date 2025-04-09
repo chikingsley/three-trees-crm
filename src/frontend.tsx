@@ -9,11 +9,13 @@ import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import { App } from "./App";
 import { ClerkProvider } from '@clerk/clerk-react'
-// import { BUN_PUBLIC_CLERK_PUBLISHABLE_KEY } from "env/env";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { BUN_PUBLIC_CLERK_PUBLISHABLE_KEY, BUN_PUBLIC_CONVEX_URL } from "env/env";
 
-const BUN_PUBLIC_CLERK_PUBLISHABLE_KEY = process.env.BUN_PUBLIC_CLERK_PUBLISHABLE_KEY
-
+// const convex = new ConvexReactClient(process.env.BUN_PUBLIC_CONVEX_URL as string);
+// const BUN_PUBLIC_CLERK_PUBLISHABLE_KEY = process.env.BUN_PUBLIC_CLERK_PUBLISHABLE_KEY
 const PUBLISHABLE_KEY = BUN_PUBLIC_CLERK_PUBLISHABLE_KEY
+const convex = new ConvexReactClient(BUN_PUBLIC_CONVEX_URL);
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
@@ -23,7 +25,9 @@ const elem = document.getElementById("root")!;
 const app = (
   <StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <App />
+      <ConvexProvider client={convex}>
+        <App />
+      </ConvexProvider>
     </ClerkProvider>
   </StrictMode>
 );

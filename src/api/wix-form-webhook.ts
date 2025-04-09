@@ -1,4 +1,3 @@
-import prisma from '../lib/prisma';
 
 interface WixFormPayload {
   formName: string;
@@ -108,35 +107,35 @@ export async function handleWixSignupFormWebhook(req: Request, parsedPayload?: a
     });
     
     // Create a new client record in the database
-    try {
-      const newClient = await prisma.client.create({
-        data: {
-          firstName,
-          lastName,
-          email,
-          phone,
-          referralSource,
-          notes,
-          // Set default values for required fields
-          currentBalance: 0,
-        },
-      });
+    // try {
+    //   const newClient = await prisma.client.create({
+    //     data: {
+    //       firstName,
+    //       lastName,
+    //       email,
+    //       phone,
+    //       referralSource,
+    //       notes,
+    //       // Set default values for required fields
+    //       currentBalance: 0,
+    //     },
+    //   });
       
-      console.log('[WEBHOOK HANDLER] Created new client with ID:', newClient.id.toString());
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: 'Form submission processed successfully',
-        clientId: newClient.id.toString() // Convert BigInt to string
-      }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-    } catch (dbError) {
-      console.error('[WEBHOOK HANDLER] Database error:', dbError);
-      throw new Error(`Database error: ${dbError.message}`);
-    }
+    //   console.log('[WEBHOOK HANDLER] Created new client with ID:', newClient.id.toString());
+    //   return new Response(JSON.stringify({ 
+    //     success: true, 
+    //     message: 'Form submission processed successfully',
+    //     clientId: newClient.id.toString() // Convert BigInt to string
+    //   }), {
+    //     status: 200,
+    //     headers: {
+    //       'Content-Type': 'application/json'
+    //     }
+    //   });
+    // } catch (dbError) {
+    //   console.error('[WEBHOOK HANDLER] Database error:', dbError);
+    //   throw new Error(`Database error: ${dbError.message}`);
+    // }
     
     // This code should not be reached due to the early return in the try block above
     // But keeping it as a fallback

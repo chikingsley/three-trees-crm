@@ -1,4 +1,3 @@
-import prisma from '../lib/prisma';
 import { Webhook } from 'svix';
 import type { WebhookEvent } from '@clerk/backend';
 
@@ -53,23 +52,23 @@ export async function handleClerkWebhook(req: Request): Promise<Response> {
       const primaryEmail = email_addresses?.find(email => email.id === evt.data.primary_email_address_id)?.email_address;
       
       // Create or update the user in the database
-      await prisma.user.upsert({
-        where: { clerkUserId: clerkUserId },
-        update: {
-          email: primaryEmail || undefined,
-          firstName: first_name || undefined,
-          lastName: last_name || undefined,
-          profileImageUrl: image_url || undefined,
-          updatedAt: new Date(),
-        },
-        create: {
-          clerkUserId: clerkUserId,
-          email: primaryEmail || null,
-          firstName: first_name || null,
-          lastName: last_name || null,
-          profileImageUrl: image_url || null,
-        },
-      });
+      // await prisma.user.upsert({
+      //   where: { clerkUserId: clerkUserId },
+      //   update: {
+      //     email: primaryEmail || undefined,
+      //     firstName: first_name || undefined,
+      //     lastName: last_name || undefined,
+      //     profileImageUrl: image_url || undefined,
+      //     updatedAt: new Date(),
+      //   },
+      //   create: {
+      //     clerkUserId: clerkUserId,
+      //     email: primaryEmail || null,
+      //     firstName: first_name || null,
+      //     lastName: last_name || null,
+      //     profileImageUrl: image_url || null,
+      //   },
+      // });
 
       console.log(`User ${clerkUserId} created/updated in the database`);
     } 
@@ -78,31 +77,31 @@ export async function handleClerkWebhook(req: Request): Promise<Response> {
       const { id: clerkUserId } = evt.data;
       
       // Find the user
-      const user = await prisma.user.findUnique({
-        where: { clerkUserId: clerkUserId },
-      });
+      // const user = await prisma.user.findUnique({
+      //   where: { clerkUserId: clerkUserId },
+      // });
 
-      if (user) {
-        // Create an entry in the audit log
-        await prisma.auditLog.create({
-          data: {
-            userId: user.id,
-            action: 'DELETE',
-            tableName: 'users',
-            recordPk: user.id.toString(),
-            changedFields: { reason: 'User deleted from Clerk' },
-          }
-        });
+      // if (user) {
+      //   // Create an entry in the audit log
+      //   await prisma.auditLog.create({
+      //     data: {
+      //       userId: user.id,
+      //       action: 'DELETE',
+      //       tableName: 'users',
+      //       recordPk: user.id.toString(),
+      //       changedFields: { reason: 'User deleted from Clerk' },
+      //     }
+      //   });
 
-        // Delete the user
-        await prisma.user.delete({
-          where: { clerkUserId: clerkUserId },
-        });
+      //   // Delete the user
+      //   await prisma.user.delete({
+      //     where: { clerkUserId: clerkUserId },
+      //   });
 
-        console.log(`User ${clerkUserId} deleted from the database`);
-      } else {
-        console.log(`User ${clerkUserId} not found in the database`);
-      }
+      //   console.log(`User ${clerkUserId} deleted from the database`);
+      // } else {
+      //   console.log(`User ${clerkUserId} not found in the database`);
+      // }
     }
 
     // Return a 200 response so Clerk knows we processed the webhook successfully

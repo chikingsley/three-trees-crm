@@ -3,7 +3,6 @@ import index from "./index.html";
 import { handleClerkWebhook } from "./api/webhooks";
 import { handleWixSignupFormWebhook } from "./api/wix-form-webhook";
 import { getCurrentUser, getCurrentDbUser, checkUserSync } from "./api/users";
-import prisma from "./lib/prisma"; 
 
 // Enhanced request logger function
 const logRequest = (req) => {
@@ -180,123 +179,123 @@ const server = serve({
       return checkUserSync(req);
     },
 
-    "/api/clients": async (req) => {
-      if (req.method !== "GET") {
-        return new Response("Method not allowed", { status: 405 });
-      }
+    // "/api/clients": async (req) => {
+    //   if (req.method !== "GET") {
+    //     return new Response("Method not allowed", { status: 405 });
+    //   }
 
-      try {
-        const clients = await prisma.client.findMany({
-          orderBy: {
-            createdAt: 'desc',
-          },
-        });
+    //   try {
+    //     const clients = await prisma.client.findMany({
+    //       orderBy: {
+    //         createdAt: 'desc',
+    //       },
+    //     });
 
-        const serializedClients = clients.map(client => ({
-          ...client,
-          id: client.id.toString(),
-          createdAt: client.createdAt.toISOString(),
-          updatedAt: client.updatedAt.toISOString(),
-        }));
+    //     const serializedClients = clients.map(client => ({
+    //       ...client,
+    //       id: client.id.toString(),
+    //       createdAt: client.createdAt.toISOString(),
+    //       updatedAt: client.updatedAt.toISOString(),
+    //     }));
 
-        return Response.json(serializedClients);
-      } catch (error) {
-        console.error("Failed to fetch clients:", error);
-        return new Response("Internal Server Error", { status: 500 });
-      }
-    },
+    //     return Response.json(serializedClients);
+    //   } catch (error) {
+    //     console.error("Failed to fetch clients:", error);
+    //     return new Response("Internal Server Error", { status: 500 });
+    //   }
+    // },
 
-    "/api/payments": async (req) => {
-      if (req.method !== "GET") {
-        return new Response("Method not allowed", { status: 405 });
-      }
+    // "/api/payments": async (req) => {
+    //   if (req.method !== "GET") {
+    //     return new Response("Method not allowed", { status: 405 });
+    //   }
 
-      try {
-        const payments = await prisma.payment.findMany({
-          include: {
-            client: {
-              select: {
-                firstName: true,
-                lastName: true,
-              }
-            }
-          },
-          orderBy: {
-            paymentDate: 'desc',
-          },
-        });
+    //   try {
+    //     const payments = await prisma.payment.findMany({
+    //       include: {
+    //         client: {
+    //           select: {
+    //             firstName: true,
+    //             lastName: true,
+    //           }
+    //         }
+    //       },
+    //       orderBy: {
+    //         paymentDate: 'desc',
+    //       },
+    //     });
 
-        const serializedPayments = payments.map(payment => ({
-          ...payment,
-          id: payment.id.toString(),
-          clientId: payment.clientId.toString(),
-          paymentDate: payment.paymentDate.toISOString(),
-          createdAt: payment.createdAt.toISOString(),
-          updatedAt: payment.updatedAt.toISOString(),
-          clientName: `${payment.client?.lastName ?? ''}, ${payment.client?.firstName ?? ''}`.trim() || 'N/A',
-        }));
+    //     const serializedPayments = payments.map(payment => ({
+    //       ...payment,
+    //       id: payment.id.toString(),
+    //       clientId: payment.clientId.toString(),
+    //       paymentDate: payment.paymentDate.toISOString(),
+    //       createdAt: payment.createdAt.toISOString(),
+    //       updatedAt: payment.updatedAt.toISOString(),
+    //       clientName: `${payment.client?.lastName ?? ''}, ${payment.client?.firstName ?? ''}`.trim() || 'N/A',
+    //     }));
 
-        return Response.json(serializedPayments);
-      } catch (error) {
-        console.error("Failed to fetch payments:", error);
-        return new Response("Internal Server Error", { status: 500 });
-      }
-    },
+    //     return Response.json(serializedPayments);
+    //   } catch (error) {
+    //     console.error("Failed to fetch payments:", error);
+    //     return new Response("Internal Server Error", { status: 500 });
+    //   }
+    // },
 
-    "/api/facilitators": async (req) => {
-      if (req.method !== "GET") {
-        return new Response("Method not allowed", { status: 405 });
-      }
-      try {
-        const facilitators = await prisma.facilitator.findMany({
-          orderBy: { lastName: 'asc' },
-        });
-        const serializedFacilitators = facilitators.map(f => ({
-          ...f,
-          id: f.id.toString(),
-          createdAt: f.createdAt.toISOString(),
-          updatedAt: f.updatedAt.toISOString(),
-        }));
-        return Response.json(serializedFacilitators);
-      } catch (error) {
-        console.error("Failed to fetch facilitators:", error);
-        return new Response("Internal Server Error", { status: 500 });
-      }
-    },
+    // "/api/facilitators": async (req) => {
+    //   if (req.method !== "GET") {
+    //     return new Response("Method not allowed", { status: 405 });
+    //   }
+    //   try {
+    //     const facilitators = await prisma.facilitator.findMany({
+    //       orderBy: { lastName: 'asc' },
+    //     });
+    //     const serializedFacilitators = facilitators.map(f => ({
+    //       ...f,
+    //       id: f.id.toString(),
+    //       createdAt: f.createdAt.toISOString(),
+    //       updatedAt: f.updatedAt.toISOString(),
+    //     }));
+    //     return Response.json(serializedFacilitators);
+    //   } catch (error) {
+    //     console.error("Failed to fetch facilitators:", error);
+    //     return new Response("Internal Server Error", { status: 500 });
+    //   }
+    // },
 
-    "/api/attendance": async (req) => {
-      if (req.method !== "GET") {
-        return new Response("Method not allowed", { status: 405 });
-      }
-      try {
-        const attendanceRecords = await prisma.attendance.findMany({
-          include: {
-            enrollment: {
-              include: {
-                client: { select: { firstName: true, lastName: true } }
-              }
-            },
-            attendanceDate: { select: { date: true } }
-          },
-          orderBy: { attendanceDate: { date: 'desc' } },
-        });
+    // "/api/attendance": async (req) => {
+    //   if (req.method !== "GET") {
+    //     return new Response("Method not allowed", { status: 405 });
+    //   }
+    //   try {
+    //     const attendanceRecords = await prisma.attendance.findMany({
+    //       include: {
+    //         enrollment: {
+    //           include: {
+    //             client: { select: { firstName: true, lastName: true } }
+    //           }
+    //         },
+    //         attendanceDate: { select: { date: true } }
+    //       },
+    //       orderBy: { attendanceDate: { date: 'desc' } },
+    //     });
 
-        const serializedAttendance = attendanceRecords.map(a => ({
-          ...a,
-          id: a.id.toString(),
-          enrollmentId: a.enrollmentId.toString(),
-          attendanceDateId: a.attendanceDateId.toString(),
-          createdAt: a.createdAt.toISOString(),
-          updatedAt: a.updatedAt.toISOString(),
-          clientName: `${a.enrollment?.client?.lastName ?? ''}, ${a.enrollment?.client?.firstName ?? ''}`.trim() || 'N/A',
-          attendanceActualDate: a.attendanceDate?.date.toISOString().split('T')[0] ?? 'N/A',
-        }));
-        return Response.json(serializedAttendance);
-      } catch (error) {
-        console.error("Failed to fetch attendance:", error);
-        return new Response("Internal Server Error", { status: 500 });
-      }
-    },
+    //     const serializedAttendance = attendanceRecords.map(a => ({
+    //       ...a,
+    //       id: a.id.toString(),
+    //       enrollmentId: a.enrollmentId.toString(),
+    //       attendanceDateId: a.attendanceDateId.toString(),
+    //       createdAt: a.createdAt.toISOString(),
+    //       updatedAt: a.updatedAt.toISOString(),
+    //       clientName: `${a.enrollment?.client?.lastName ?? ''}, ${a.enrollment?.client?.firstName ?? ''}`.trim() || 'N/A',
+    //       attendanceActualDate: a.attendanceDate?.date.toISOString().split('T')[0] ?? 'N/A',
+    //     }));
+    //     return Response.json(serializedAttendance);
+    //   } catch (error) {
+    //     console.error("Failed to fetch attendance:", error);
+    //     return new Response("Internal Server Error", { status: 500 });
+    //   }
+    // },
   },
 
   development: process.env.NODE_ENV !== "production",

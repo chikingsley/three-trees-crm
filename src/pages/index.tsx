@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useState, useEffect } from 'react';
 import { DataTable } from "@/components/data-table/data-table";
 import { columns as clientColumns } from "@/components/clients/columns";
