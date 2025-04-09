@@ -1,16 +1,13 @@
 import * as React from "react"
 import {
   IconCamera,
-  IconChartBar,
   IconDashboard,
   IconDatabase,
   IconFileAi,
   IconFileDescription,
   IconFileWord,
-  IconFolder,
   IconHelp,
   IconInnerShadowTop,
-  IconListDetails,
   IconReport,
   IconSearch,
   IconSettings,
@@ -47,26 +44,6 @@ const data = {
       title: "Clients",
       url: "/clients",
       icon: IconUsers,
-    },
-    {
-      title: "Payments",
-      url: "/payments",
-      icon: IconChartBar,
-    },
-    {
-      title: "Attendance",
-      url: "/attendance",
-      icon: IconListDetails,
-    },
-    {
-      title: "Facilitators",
-      url: "/facilitators",
-      icon: IconUsers,
-    },
-    {
-      title: "Reports",
-      url: "/reports",
-      icon: IconFolder,
     },
   ],
   navClouds: [

@@ -3,10 +3,6 @@ import { Layout } from "@/Layout";
 import { useEffect, useState } from "react";
 import Dashboard from "./pages/";
 import ClientsPage from "./pages/clients";
-import PaymentsPage from "./pages/payments";
-import AttendancePage from "./pages/attendance";
-import FacilitatorsPage from "./pages/facilitators";
-import ReportsPage from "./pages/reports";
 import SettingsPage from "./pages/settings";
 import ClientDetail from "./pages/clients/[id]";
 import { FC } from "react";
@@ -21,10 +17,6 @@ const routes: Record<string, FC<NavigationProps>> = {
   "/": Dashboard,
   "/clients": ClientsPage,
   "/clients/1": ClientDetail, // Example client detail page
-  "/payments": PaymentsPage,
-  "/attendance": AttendancePage,
-  "/facilitators": FacilitatorsPage,
-  "/reports": ReportsPage,
   "/settings": SettingsPage,
 };
 
