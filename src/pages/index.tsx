@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { DataTable } from "@/components/data-table/data-table";
-import { columns as clientColumns } from "@/components/clients/columns"; 
+import { columns as clientColumns } from "@/components/clients/columns";
 import { SerializableClient } from "@/types/client";
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"; 
-import { SectionCards } from "@/components/section-cards"; 
+import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { SectionCards } from "@/components/section-cards";
 import { NavigationProps } from "@/App";
 
 export default function HomePage({ navigate }: NavigationProps) {
@@ -56,27 +56,15 @@ export default function HomePage({ navigate }: NavigationProps) {
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="px-4 lg:px-6">
-        {/* Simplified dashboard view */}
         <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
         <p className="text-muted-foreground mb-6">Overview of recent activity.</p>
-        {/* Maybe add some summary cards here later */}
       </div>
-
-      {/* Add Section Cards */}
       <SectionCards />
-
-      {/* Add Chart */}
       <div className="px-4 lg:px-6">
         <ChartAreaInteractive />
       </div>
-
-      {/* Display Client Table on main dashboard - Remove wrapping div */}
-      {/* <div className="px-4 lg:px-6"> */}
-      <h2 className="text-xl font-semibold mb-3 px-4 lg:px-6">Recent Clients</h2> {/* Add padding to header */}
+      <h2 className="text-xl font-semibold mb-3 px-4 lg:px-6">Recent Clients</h2>
       <DataTable columns={clientColumns} data={clients} />
-      {/* </div> */}
-
-      {/* Could add other tables/summaries here */}
     </div>
   );
 } 
